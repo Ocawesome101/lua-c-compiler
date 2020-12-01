@@ -36,6 +36,9 @@ local function convert_to_lua(fn_name, str)
       "\nlcc_internal_assert(%s.type == '%s', \"invalid argument to '%s' - expected '%s'\")",
       word, typ, fn_name, typ)
   end
+  if temp:sub(-3) == "..." then -- last thing is varargs -- TODO: NASTY HACKS
+    ret = ret .. "..., "
+  end
   ret = ret:sub(1, -3)
   return "("..ret..")" .. check_statements
 end
@@ -50,10 +53,13 @@ patterns.assignment = {
     local pat = "([\"'].-[\"'])"
     for match in dat:gmatch(pat) do
       print("MATCH", match)
-      dat = dat:gsub(escape_magic(match), string.format(
-      "lcc_internal_value('char', %s)", match))
+      dat = dat:gsub(escape_magic(match), (string.format(
+      "lcc_internal_value('char', %s)", match):gsub("%%", "%%%%")))
     end
     return dat
+  end,
+  -- inline constants
+  function(dat)
   end,
   -- function creation
   function(dat)
@@ -73,8 +79,8 @@ patterns.assignment = {
         print(string.format("lcc_internal_make_fn('%s', function%s %s)",
                       fn_name, fn_args, fn_body))
         dat = dat:gsub(escape_magic(k.." "..fn_name..fn_orig_args),
-                      string.format("lcc_internal_make_fn('%s', function%s %s, '%s')",
-                      fn_name, fn_args, fn_body, k))
+                      (string.format("lcc_internal_make_fn('%s', function%s %s, '%s')",
+                      fn_name, fn_args, fn_body, k):gsub("%%", "%%%%")))
       end
     end
     return dat

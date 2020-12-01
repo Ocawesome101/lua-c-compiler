@@ -19,8 +19,8 @@ end
 env.lcc_internal_lua_invoke = function(dstr, ...)
   local base = _G
   for term in dstr.value.pack():gmatch("[^%.]+") do
-    if _G[term] then
-      base = _G[term]
+    if base[term] then
+      base = base[term]
     else
       error("no such lua_object: "..dstr.value.pack())
     end
