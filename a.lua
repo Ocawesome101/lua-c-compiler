@@ -7,5 +7,5 @@ end, 'int')
 lcc_internal_make_fn('main', function(argc, argv)
 lcc_internal_assert(argc.type == 'int', "invalid argument to 'main' - expected 'int'")
 lcc_internal_assert(argv.type == 'char*', "invalid argument to 'main' - expected 'char*'") 
-printf(lcc_internal_value('char', "Hello, world! This (%d) is an integer!\n"), 10);
+printf(lcc_internal_value('char', "Hello, world! This (%d) is an integer!\n"), lcc_internal_value('int', 10));
 end, 'int') 

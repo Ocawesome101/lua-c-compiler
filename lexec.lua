@@ -9,7 +9,7 @@ local function get_values_from_args(...)
   local ret = {}
   for i=1, args.n, 1 do
     ret[i] = args[i].value or args[i]
-    if ret[i].pack then
+    if type(ret[i]) == "table" and ret[i].pack then
       ret[i] = ret[i].pack()
     end
   end

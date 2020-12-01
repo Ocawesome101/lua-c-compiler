@@ -44,7 +44,7 @@ local function convert_to_lua(fn_name, str)
 end
 
 local function escape_magic(str)
-  return (str:gsub("([%[%]%(%)%*%-%+%^%$%%])", "%%%1"))
+  return (str:gsub("([%[%]%(%)%*%-%.%+%^%$%%])", "%%%1"))
 end
 
 patterns.assignment = {
@@ -60,6 +60,19 @@ patterns.assignment = {
   end,
   -- inline constants
   function(dat)
+    local pat = "(%d+)"
+    for match in dat:gmatch(pat) do
+      print("MATCH", match)
+      local n = tonumber(match)
+      if math.floor(n) == n then -- n is int
+        dat = dat:gsub(match, string.format("lcc_internal_value('int', %d)",
+        tonumber(match)))
+      else -- n is not int
+        dat = dat:gsub(escape_magic(match), string.format(
+        "lcc_internal_value('float', %d)", tonumber(match)))
+      end
+    end
+    return dat
   end,
   -- function creation
   function(dat)
