@@ -10,9 +10,10 @@ patterns.gsub = {
   {"||", "or"},
   {"&(%w_)", "%1"},
   {"else if", "elseif"},
-  {"if(%b())do", "if %1 then"},
-  {"function(.-)do", "function%1"},
-  {"elseif(%b())do", "elseif %1 then"}
+  {"if(%b()){", "if %1 then"},
+  {"function(.-){", "function%1"},
+  {"elseif(%b()){", "elseif %1 then"},
+  {"}", "end"},
 }
 
 local function strip_types(str)
@@ -33,8 +34,8 @@ local function convert_to_lua(fn_name, str)
     print(typ, word)
     ret = ret .. word .. ", "
     check_statements = check_statements .. string.format(
-      "\nlcc_internal_assert(%s.type == '%s', \"invalid argument to '%s' - expected '%s'\")",
-      word, typ, fn_name, typ)
+      "\nlcc_internal_assert(%s.type == '%s', \"invalid argument to '%s' - expected '%s' but got \" .. %s.type)",
+      word, typ, fn_name, typ, word)
   end
   if temp:sub(-3) == "..." then -- last thing is varargs -- TODO: NASTY HACKS
     ret = ret .. "..., "
@@ -92,11 +93,39 @@ patterns.assignment = {
         print(string.format("lcc_internal_make_fn('%s', function%s %s)",
                       fn_name, fn_args, fn_body))
         dat = dat:gsub(escape_magic(k.." "..fn_name..fn_orig_args),
-                      (string.format("lcc_internal_make_fn('%s', function%s %s, '%s')",
+                      (string.format(
+                      "lcc_internal_make_fn('%s', function%s %s, '%s')",
                       fn_name, fn_args, fn_body, k):gsub("%%", "%%%%")))
       end
     end
     return dat
+  end,
+  -- variable creation / assignment
+  function(dat)
+    local pat_base = "([^%s]-) ?= ?(.+);"
+    local lines = {}
+    for line in dat:gmatch("[^\n]+") do
+      for k, v in pairs(types) do
+        local pat = k .. " " .. pat_base
+        if line:match(pat) then
+          local vname, val = line:match(pat)
+          local vtype = k
+          print(pat, "assign", vtype, vname, "=", val)
+          lines[#lines + 1] = string.format(
+                                    "local %s = lcc_internal_value('%s', %s)",
+                                     vname, vtype, (val:gsub("%%", "%%%%")))
+          goto continue
+        end
+      end
+      if line:match(pat_base) then
+        local vname, val = line:match(pat_base)
+        lines[#lines + 1] = string.format("%s = %s", vname, val)
+        goto continue
+      end
+      lines[#lines + 1] = line
+      ::continue::
+    end
+    return table.concat(lines, "\n")
   end,
 }
 

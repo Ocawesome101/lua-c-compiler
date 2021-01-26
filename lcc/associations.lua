@@ -9,6 +9,7 @@ local associations = {
   struct = "table",
   char = {number = true, string = true},
   ["function"] = "function",
+  ptr = "table"
 }
 
 return associations

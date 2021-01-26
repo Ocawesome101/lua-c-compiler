@@ -12,11 +12,12 @@ Compiler is `lcc.lua` and outputs to `a.lua`.  Compile `test.c` with `./lcc.lua 
   - [ ] comments
  - [ ] Core language
   - [ ] variable declaration
-  - [ ] variable assignment
+    - variables can be declared but must also be assigned a value immediately
+  - [X] variable assignment
   - [ ] types
    - partially loosely implemented
   - [ ] `struct`
-  - [ ] inline constants
+  - [?] inline constants
    - [X] `int`
    - [X] `float`
    - [X] `char`/`char*`

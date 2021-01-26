@@ -19,6 +19,15 @@ local function unpackString(str)
 end
 
 local function value(vtype, val, lencap)
+  -- due to oddities of generated code this check is necessary
+  if type(val) == "table" and val.type then
+    if val.type ~= vtype then
+      for k,v in pairs(val) do print(k,v) end
+      error("attempt to cast invalid value to " .. vtype)
+    else
+      return val
+    end
+  end
   -- we do some weird stuff here using shadow tables and metatables to validate
   -- value assignment
   local shadow = {

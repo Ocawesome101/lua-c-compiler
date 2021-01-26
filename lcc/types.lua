@@ -9,5 +9,6 @@ return {
   void              = true,
   ["unsigned int"]  = true,
   struct            = true,
-  char              = true
+  char              = true,
+  ptr               = true,
 }

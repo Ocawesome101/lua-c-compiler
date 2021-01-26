@@ -51,6 +51,29 @@ end
 env.lcc_internal_assert = assert
 env.lcc_internal_value = value
 
+local fds = {}
+function env.lcc_internal_fopen(f, m)
+  local fd = math.random(1, 99999999999)
+  local handle = io.open(f.value.pack(), m.value.pack())
+  fds[fd] = handle
+  return value("int", fd)
+end
+
+-- these aren't quiiite compliant
+function env.lcc_internal_fread(fd, n)
+  return value("char*", fds[fd]:read(n))
+end
+
+function env.lcc_internal_fwrite(fd, dat)
+  assert(fd.type == "int", "attempt to cast invalid value ("..fd.value..") as int")
+  fds[fd.value]:write(dat.value.pack())
+end
+
+function env.lcc_internal_fclose(fd)
+  fds[fd.value]:close()
+  fds[fd.value] = nil
+end
+
 local call = assert(loadfile((select(1, ...)), "bt", env))
 
 call()
